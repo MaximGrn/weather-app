@@ -5,13 +5,24 @@
 </template>
 
 <script>
-import Home from "@/pages/Home.vue";
+  import Home from 'Pages/Home.vue';
 
-export default {
-  components: {
-    Home,
-  }
-};
+  export default {
+    components: {
+      Home,
+    },
+  };
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+@import "./assets/reset.scss";
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+
+#app {
+  height: 100%;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.3;
+}
+</style>
