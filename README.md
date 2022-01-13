@@ -1,5 +1,10 @@
 # weather-app
 
+## gh-pages link
+```
+https://maximgrn.github.io/weather-app/dist/
+```
+
 ## Project setup
 ```
 npm install
