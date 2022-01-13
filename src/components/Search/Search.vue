@@ -1,13 +1,13 @@
 <template>
   <div class="search-component">
-    <Input
+    <WInput
       class="search-component__input"
       :inputText="searchQuery"
       @onInputChange="inputHandler"
       @keydown.down.native="upDownHandler(1)"
       @keydown.up.native="upDownHandler(-1)"
       @keyup.enter.native="enterHandler"
-      @keyup.esc.native="CLEAR_SUGGESTIONS"
+      @keyup.esc.native="clearSuggestions"
     >
       <div class="search-component__search-btn">
         <svg
@@ -24,7 +24,7 @@
           ></path>
         </svg>
       </div>
-    </Input>
+    </WInput>
     <div
       v-show="suggestions.length"
       class="search-component__suggestions"
@@ -34,11 +34,7 @@
         :key="index"
         ref="sugg"
         class="search-component__suggestion"
-        :class="[
-          activeSuggestedIndex === index
-            ? 'search-component__suggestion--active'
-            : '',
-        ]"
+        :class="[activeSuggestedIndex === index ? 'search-component__suggestion--active' : '']"
         @click="suggestionClickHandler(suggestion.formatted, suggestion)"
       >
         {{ suggestion.formatted }}
@@ -48,8 +44,8 @@
 </template>
 
 <script>
-  import Input from 'Components/Input/Input.vue';
-  import { mapActions, mapMutations, mapState } from 'vuex';
+  import WInput from 'Components/Input/Input.vue';
+  import { mapActions, mapGetters } from 'vuex';
   import debounce from 'debounce';
 
   const debouncedSearch = debounce(function (query) {
@@ -61,7 +57,7 @@
   export default {
     name: 'Search',
     components: {
-      Input,
+      WInput,
     },
     data() {
       return {
@@ -70,11 +66,10 @@
       };
     },
     computed: {
-      ...mapState('SearchAutocompletion', ['suggestions']),
+      ...mapGetters('Search', ['suggestions']),
     },
     methods: {
-      ...mapActions('SearchAutocompletion', ['getCitiesSuggestions']),
-      ...mapMutations('SearchAutocompletion', ['CLEAR_SUGGESTIONS']),
+      ...mapActions('Search', ['getCitiesSuggestions', 'clearSuggestions']),
 
       inputHandler(query) {
         this.searchQuery = query;
@@ -82,12 +77,11 @@
       },
 
       upDownHandler(v) {
-        if (!this.suggestions.length) { return; }
-        const isMaxLength =
-          v === 1 && this.activeSuggestedIndex === this.suggestions.length - 1;
-        const isMinLength =
-          v === -1
-          && (this.activeSuggestedIndex === 0 || this.activeSuggestedIndex === -1);
+        if (!this.suggestions.length) {
+          return;
+        }
+        const isMaxLength = v === 1 && this.activeSuggestedIndex === this.suggestions.length - 1;
+        const isMinLength = v === -1 && (this.activeSuggestedIndex === 0 || this.activeSuggestedIndex === -1);
 
         if (isMaxLength) {
           this.activeSuggestedIndex = 0;
@@ -114,12 +108,10 @@
       enterHandler() {
         const { lat, lon, city, country } = this.suggestions[this.activeSuggestedIndex];
 
-        this.searchQuery = this.suggestions.find(
-          (e) => e === this.suggestions[this.activeSuggestedIndex],
-        ).formatted;
+        this.searchQuery = this.suggestions.find((e) => e === this.suggestions[this.activeSuggestedIndex]).formatted;
         this.$refs.sugg[0].scrollIntoView();
 
-        this.CLEAR_SUGGESTIONS();
+        this.clearSuggestions();
 
         this.$emit('onSelect', { lat, lon, city, country });
         this.activeSuggestedIndex = -1;
@@ -129,7 +121,7 @@
         const { lat, lon, city, country } = suggestion;
 
         this.searchQuery = suggestedCity;
-        this.CLEAR_SUGGESTIONS();
+        this.clearSuggestions();
         this.$emit('onSelect', { lat, lon, city, country });
 
         this.activeSuggestedIndex = -1;

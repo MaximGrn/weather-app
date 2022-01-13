@@ -4,15 +4,15 @@
       <Search @onSelect="selectHandler" />
       <div class="home-page__body">
         <div class="home-page__controls">
-          <Button
+          <WButton
             class="home-page__control"
-            :text="'current'"
+            text="current"
             :isActive="isDailyActive"
             @click.native="setActiveForecast('DailyForecast')"
           />
-          <Button
+          <WButton
             class="home-page__control"
-            :text="'7 day forecast'"
+            text="7 day forecast"
             :isActive="!isDailyActive"
             @click.native="setActiveForecast('WeeklyForecast')"
           />
@@ -57,16 +57,16 @@
 </template>
 <script>
   import Search from 'Components/Search/Search.vue';
-  import Button from 'Components/Button/Button.vue';
+  import WButton from 'Components/Button/Button.vue';
   import DailyForecast from 'Components/DailyForecast/DailyForecast.vue';
   import WeeklyForecast from 'Components/WeeklyForecast/WeeklyForecast.vue';
-  import { mapActions, mapState } from 'vuex';
+  import { mapActions, mapGetters } from 'vuex';
 
   export default {
     name: 'Home',
     components: {
       Search,
-      Button,
+      WButton,
       DailyForecast,
       WeeklyForecast,
     },
@@ -80,7 +80,7 @@
       };
     },
     computed: {
-      ...mapState('Weather', ['dailyForecast', 'weeklyForecast']),
+      ...mapGetters('Weather', ['dailyForecast', 'weeklyForecast']),
       isDailyActive() {
         return this.activeForecast === 'DailyForecast';
       },
@@ -101,7 +101,9 @@
         this.getForecasts();
       },
       getForecasts() {
-        if (!this.lon) { return; }
+        if (!this.lon) {
+          return;
+        }
         if (this.isDailyActive) {
           this.getDailyForecast({ lon: this.lon, lat: this.lat });
         } else {
@@ -119,7 +121,7 @@
   justify-content: center;
 
   &__wrapper {
-    min-width: 820px;
+    width: 820px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -156,6 +158,7 @@
 
   &__active-forecast {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
   }

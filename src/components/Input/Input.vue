@@ -15,7 +15,7 @@
 
 <script>
   export default {
-    name: 'Input',
+    name: 'WInput',
     props: {
       placeholder: {
         type: String,
@@ -33,7 +33,9 @@
     },
     methods: {
       inputHandler() {
-        if (this.text === '' || this.text.length < 3) { return; }
+        if (this.text === '' || this.text.length < 3) {
+          return;
+        }
         this.$emit('onInputChange', this.text);
       },
     },

@@ -11,7 +11,7 @@
 
 <script>
   export default {
-    name: 'Button',
+    name: 'WButton',
     props: {
       isActive: {
         type: Boolean,
@@ -26,9 +26,11 @@
 </script>
 
 <style lang="scss">
+@import '@/assets/scss/style.scss';
+
 .button-component {
   font-size: 18px;
-  font-weight: 500;
+  @extend %roboto-500;
 
   &__button {
     padding: 8px 12px;
