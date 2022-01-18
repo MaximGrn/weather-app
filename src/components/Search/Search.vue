@@ -1,13 +1,13 @@
 <template>
   <div class="search-component">
     <WInput
+      v-model="searchQuery"
       class="search-component__input"
-      :inputText="searchQuery"
-      @onInputChange="inputHandler"
-      @keydown.down.native="upDownHandler(1)"
-      @keydown.up.native="upDownHandler(-1)"
-      @keyup.enter.native="enterHandler"
-      @keyup.esc.native="clearSuggestions"
+      @input="onInput"
+      @keydown.down="onUpDown(1)"
+      @keydown.up="onUpDown(-1)"
+      @keyup.enter="onSelect"
+      @keyup.esc="clearSuggestions"
     >
       <div class="search-component__search-btn">
         <svg
@@ -32,10 +32,12 @@
       <div
         v-for="(suggestion, index) in suggestions"
         :key="index"
-        ref="sugg"
-        class="search-component__suggestion"
-        :class="[activeSuggestedIndex === index ? 'search-component__suggestion--active' : '']"
-        @click="suggestionClickHandler(suggestion.formatted, suggestion)"
+        ref="suggestion"
+        :class="[
+          'search-component__suggestion',
+          activeSuggestedIndex === index ? 'search-component__suggestion--active' : '',
+        ]"
+        @click="onSelect(suggestion)"
       >
         {{ suggestion.formatted }}
       </div>
@@ -46,13 +48,17 @@
 <script>
   import WInput from 'Components/Input/Input.vue';
   import { mapActions, mapGetters } from 'vuex';
-  import debounce from 'debounce';
+  import debounce from 'Utils/debounce';
 
-  const debouncedSearch = debounce(function (query) {
-    const { getCitiesSuggestions } = this;
+  const debouncedSearch = debounce(function () {
+    const { getCitiesSuggestions, searchQuery } = this;
 
-    getCitiesSuggestions({ query });
-  }, 1500);
+    if (searchQuery === '' || searchQuery.length < 3) {
+      return;
+    }
+
+    getCitiesSuggestions(searchQuery);
+  }, 2000);
 
   export default {
     name: 'Search',
@@ -62,7 +68,7 @@
     data() {
       return {
         searchQuery: '',
-        activeSuggestedIndex: -1,
+        activeSuggestedIndex: 0,
       };
     },
     computed: {
@@ -71,12 +77,11 @@
     methods: {
       ...mapActions('Search', ['getCitiesSuggestions', 'clearSuggestions']),
 
-      inputHandler(query) {
-        this.searchQuery = query;
-        debouncedSearch.call(this, query);
+      onInput() {
+        debouncedSearch.call(this);
       },
 
-      upDownHandler(v) {
+      onUpDown(v) {
         if (!this.suggestions.length) {
           return;
         }
@@ -102,29 +107,30 @@
       },
 
       fixScrolling(index) {
-        this.$refs.sugg[index].scrollIntoView();
+        this.$refs.suggestion[index].scrollIntoView();
       },
 
-      enterHandler() {
-        const { lat, lon, city, country } = this.suggestions[this.activeSuggestedIndex];
+      onSelect(suggestion) {
+        let lat;
+        let lon;
+        let city;
+        let country;
+        let formatted;
 
-        this.searchQuery = this.suggestions.find((e) => e === this.suggestions[this.activeSuggestedIndex]).formatted;
-        this.$refs.sugg[0].scrollIntoView();
+        if (typeof suggestion === 'string') {
+          ({ lat, lon, city, country, formatted } = suggestion);
 
+          this.searchQuery = formatted;
+        } else {
+          ({ lat, lon, city, country } = this.suggestions[this.activeSuggestedIndex]);
+
+          this.searchQuery = this.suggestions.find((e) => e === this.suggestions[this.activeSuggestedIndex]).formatted;
+        }
+        this.$refs.suggestion[0].scrollIntoView();
         this.clearSuggestions();
+        this.$emit('on-select', { lat, lon, city, country });
 
-        this.$emit('onSelect', { lat, lon, city, country });
-        this.activeSuggestedIndex = -1;
-      },
-
-      suggestionClickHandler(suggestedCity, suggestion) {
-        const { lat, lon, city, country } = suggestion;
-
-        this.searchQuery = suggestedCity;
-        this.clearSuggestions();
-        this.$emit('onSelect', { lat, lon, city, country });
-
-        this.activeSuggestedIndex = -1;
+        this.activeSuggestedIndex = 0;
       },
     },
   };

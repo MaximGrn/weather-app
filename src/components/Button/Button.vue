@@ -1,9 +1,6 @@
 <template>
   <div class="button-component">
-    <button
-      class="button-component__button"
-      :class="{ 'button-component__button--active': isActive }"
-    >
+    <button :class="['button-component__button', isActive ? 'button-component__button--active' : '']">
       {{ text }}
     </button>
   </div>
@@ -26,8 +23,6 @@
 </script>
 
 <style lang="scss">
-@import '@/assets/scss/style.scss';
-
 .button-component {
   font-size: 18px;
   @extend %roboto-500;

@@ -4,6 +4,6 @@ export const API_KEYS = {
 };
 
 export const URLS = {
-  GEO: 'https://api.geoapify.com/v1/geocode/',
-  WEATHER: 'https://api.openweathermap.org/data/2.5/',
+  GEO: 'https://api.geoapify.com/v1/geocode',
+  WEATHER: 'https://api.openweathermap.org/data/2.5',
 };

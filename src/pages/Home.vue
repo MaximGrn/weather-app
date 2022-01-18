@@ -1,7 +1,7 @@
 <template>
   <div class="home-page">
     <div class="home-page__wrapper">
-      <Search @onSelect="selectHandler" />
+      <Search @on-select="selectHandler" />
       <div class="home-page__body">
         <div class="home-page__controls">
           <WButton
@@ -91,8 +91,8 @@
         this.activeForecast = name;
         this.getForecasts();
       },
-      selectHandler(e) {
-        const { city, country, lon, lat } = e;
+      selectHandler(selectedPlace) {
+        const { city, country, lon, lat } = selectedPlace;
 
         this.city = city;
         this.country = country;
