@@ -1,9 +1,6 @@
 <template>
   <div class="button-component">
-    <button
-      class="button-component__button"
-      :class="{ 'button-component__button--active': isActive }"
-    >
+    <button :class="['button-component__button', isActive ? 'button-component__button--active' : '']">
       {{ text }}
     </button>
   </div>
@@ -11,7 +8,7 @@
 
 <script>
   export default {
-    name: 'Button',
+    name: 'WButton',
     props: {
       isActive: {
         type: Boolean,
@@ -28,7 +25,7 @@
 <style lang="scss">
 .button-component {
   font-size: 18px;
-  font-weight: 500;
+  @extend %roboto-500;
 
   &__button {
     padding: 8px 12px;

@@ -1,13 +1,14 @@
 <template>
   <div class="input-component">
     <input
-      v-model.trim="text"
       class="input-component__input"
       type="text"
       :placeholder="placeholder"
+      :value="value"
+      v-bind="$attrs"
       @keydown.up.prevent
       @keydown.down.prevent
-      @input="inputHandler"
+      v-on="listeners"
     />
     <slot></slot>
   </div>
@@ -15,33 +16,29 @@
 
 <script>
   export default {
-    name: 'Input',
+    name: 'WInput',
+    inheritAttrs: false,
     props: {
       placeholder: {
         type: String,
         default: 'Search...',
       },
-      inputText: {
+      value: {
         type: String,
         default: '',
       },
     },
-    data() {
-      return {
-        text: this.inputText,
-      };
-    },
-    methods: {
-      inputHandler() {
-        if (this.text === '' || this.text.length < 3) { return; }
-        this.$emit('onInputChange', this.text);
+    computed: {
+      listeners() {
+        return {
+          ...this.$listeners,
+          input: this.inputHandler,
+        };
       },
     },
-    watch: {
-      inputText: {
-        handler(text) {
-          this.text = text;
-        },
+    methods: {
+      inputHandler(e) {
+        this.$emit('input', e.target.value);
       },
     },
   };

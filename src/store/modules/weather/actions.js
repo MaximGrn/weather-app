@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import axios from 'axios';
-import { API_KEYS } from 'Constants';
+import { API_KEYS, URLS } from 'Constants';
 import { getDataFromDailyWeather } from 'Utils/getDataFromDailyWeather';
 import { getDataFromWeeklyWeather } from 'Utils/getDataFromWeeklyWeather';
 import mutationTypes from './mutationTypes';
@@ -9,8 +9,16 @@ import state from './state';
 const actions = {
   async getDailyForecast({ commit }, { lat = '', lon = '' }) {
     try {
-      const response = await axios.get(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,daily,alerts&units=metric&appid=${API_KEYS.WEATHER_KEY}
-      `);
+      const response = await axios.get(`${URLS.WEATHER}/onecall`, {
+        params: {
+          lat: `${lat}`,
+          lon: `${lon}`,
+          exclude: 'minutely,hourly,daily,alerts',
+          units: 'metric',
+          appid: `${API_KEYS.WEATHER_KEY}`,
+        },
+      },
+      );
       const daily = { ...getDataFromDailyWeather(response.data) };
 
       commit(mutationTypes.SET_DAILY_FORECAST, daily);
@@ -21,8 +29,16 @@ const actions = {
 
   async getWeeklyForecast({ commit }, { lat = '', lon = '' }) {
     try {
-      const response = await axios.get(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=current,minutely,hourly,alerts&units=metric&appid=${API_KEYS.WEATHER_KEY}
-      `);
+      const response = await axios.get(`${URLS.WEATHER}/onecall`, {
+        params: {
+          lat: `${lat}`,
+          lon: `${lon}`,
+          exclude: 'current,minutely,hourly,alerts',
+          units: 'metric',
+          appid: `${API_KEYS.WEATHER_KEY}`,
+        },
+      },
+      );
       const weekly = getDataFromWeeklyWeather(response.data.daily);
 
       commit(mutationTypes.SET_WEEKLY_FORECAST, weekly);

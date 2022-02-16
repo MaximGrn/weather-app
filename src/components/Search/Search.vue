@@ -1,13 +1,13 @@
 <template>
   <div class="search-component">
-    <Input
+    <WInput
+      v-model="searchQuery"
       class="search-component__input"
-      :inputText="searchQuery"
-      @onInputChange="inputHandler"
-      @keydown.down.native="upDownHandler(1)"
-      @keydown.up.native="upDownHandler(-1)"
-      @keyup.enter.native="enterHandler"
-      @keyup.esc.native="CLEAR_SUGGESTIONS"
+      @input="onInput"
+      @keydown.down="onUpDown(1)"
+      @keydown.up="onUpDown(-1)"
+      @keyup.enter="onSelect"
+      @keyup.esc="clearSuggestions"
     >
       <div class="search-component__search-btn">
         <svg
@@ -24,7 +24,7 @@
           ></path>
         </svg>
       </div>
-    </Input>
+    </WInput>
     <div
       v-show="suggestions.length"
       class="search-component__suggestions"
@@ -32,14 +32,12 @@
       <div
         v-for="(suggestion, index) in suggestions"
         :key="index"
-        ref="sugg"
-        class="search-component__suggestion"
+        ref="suggestion"
         :class="[
-          activeSuggestedIndex === index
-            ? 'search-component__suggestion--active'
-            : '',
+          'search-component__suggestion',
+          activeSuggestedIndex === index ? 'search-component__suggestion--active' : '',
         ]"
-        @click="suggestionClickHandler(suggestion.formatted, suggestion)"
+        @click="onSelect(suggestion)"
       >
         {{ suggestion.formatted }}
       </div>
@@ -48,46 +46,47 @@
 </template>
 
 <script>
-  import Input from 'Components/Input/Input.vue';
-  import { mapActions, mapMutations, mapState } from 'vuex';
-  import debounce from 'debounce';
+  import WInput from 'Components/Input/Input.vue';
+  import { mapActions, mapGetters } from 'vuex';
+  import debounce from 'Utils/debounce';
 
-  const debouncedSearch = debounce(function (query) {
-    const { getCitiesSuggestions } = this;
+  const debouncedSearch = debounce(function () {
+    const { getCitiesSuggestions, searchQuery } = this;
 
-    getCitiesSuggestions({ query });
-  }, 1500);
+    if (searchQuery === '' || searchQuery.length < 3) {
+      return;
+    }
+
+    getCitiesSuggestions(searchQuery);
+  }, 2000);
 
   export default {
     name: 'Search',
     components: {
-      Input,
+      WInput,
     },
     data() {
       return {
         searchQuery: '',
-        activeSuggestedIndex: -1,
+        activeSuggestedIndex: 0,
       };
     },
     computed: {
-      ...mapState('SearchAutocompletion', ['suggestions']),
+      ...mapGetters('Search', ['suggestions']),
     },
     methods: {
-      ...mapActions('SearchAutocompletion', ['getCitiesSuggestions']),
-      ...mapMutations('SearchAutocompletion', ['CLEAR_SUGGESTIONS']),
+      ...mapActions('Search', ['getCitiesSuggestions', 'clearSuggestions']),
 
-      inputHandler(query) {
-        this.searchQuery = query;
-        debouncedSearch.call(this, query);
+      onInput() {
+        debouncedSearch.call(this);
       },
 
-      upDownHandler(v) {
-        if (!this.suggestions.length) { return; }
-        const isMaxLength =
-          v === 1 && this.activeSuggestedIndex === this.suggestions.length - 1;
-        const isMinLength =
-          v === -1
-          && (this.activeSuggestedIndex === 0 || this.activeSuggestedIndex === -1);
+      onUpDown(v) {
+        if (!this.suggestions.length) {
+          return;
+        }
+        const isMaxLength = v === 1 && this.activeSuggestedIndex === this.suggestions.length - 1;
+        const isMinLength = v === -1 && (this.activeSuggestedIndex === 0 || this.activeSuggestedIndex === -1);
 
         if (isMaxLength) {
           this.activeSuggestedIndex = 0;
@@ -108,31 +107,30 @@
       },
 
       fixScrolling(index) {
-        this.$refs.sugg[index].scrollIntoView();
+        this.$refs.suggestion[index].scrollIntoView();
       },
 
-      enterHandler() {
-        const { lat, lon, city, country } = this.suggestions[this.activeSuggestedIndex];
+      onSelect(suggestion) {
+        let lat;
+        let lon;
+        let city;
+        let country;
+        let formatted;
 
-        this.searchQuery = this.suggestions.find(
-          (e) => e === this.suggestions[this.activeSuggestedIndex],
-        ).formatted;
-        this.$refs.sugg[0].scrollIntoView();
+        if (typeof suggestion === 'string') {
+          ({ lat, lon, city, country, formatted } = suggestion);
 
-        this.CLEAR_SUGGESTIONS();
+          this.searchQuery = formatted;
+        } else {
+          ({ lat, lon, city, country } = this.suggestions[this.activeSuggestedIndex]);
 
-        this.$emit('onSelect', { lat, lon, city, country });
-        this.activeSuggestedIndex = -1;
-      },
+          this.searchQuery = this.suggestions.find((e) => e === this.suggestions[this.activeSuggestedIndex]).formatted;
+        }
+        this.$refs.suggestion[0].scrollIntoView();
+        this.clearSuggestions();
+        this.$emit('on-select', { lat, lon, city, country });
 
-      suggestionClickHandler(suggestedCity, suggestion) {
-        const { lat, lon, city, country } = suggestion;
-
-        this.searchQuery = suggestedCity;
-        this.CLEAR_SUGGESTIONS();
-        this.$emit('onSelect', { lat, lon, city, country });
-
-        this.activeSuggestedIndex = -1;
+        this.activeSuggestedIndex = 0;
       },
     },
   };
