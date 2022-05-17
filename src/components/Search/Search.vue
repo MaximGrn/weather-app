@@ -58,7 +58,7 @@
     }
 
     getCitiesSuggestions(searchQuery);
-  }, 2000);
+  }, 300);
 
   export default {
     name: 'Search',
